@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>בית עין — לוח בקרה</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#0c0d1d;--ink2:#15172e;--ink3:#1d2042;
+  --gold:#c9a661;--gold2:#e3c98a;--goldd:#8a6a2a;
+  --cream:#f4ecd8;--wine:#7a1a36;--wine2:#a8324f;
+  --green:#2d6a4f;--green2:#52b788;
+  --sidebar:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--ink);color:var(--cream);min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:inherit}
+a{color:var(--gold2);text-decoration:none}
+
+/* ── Login ── */
+#login-page{
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:radial-gradient(ellipse at 50% 0%,#1d2042,var(--ink) 70%);
+}
+.login-box{
+  width:100%;max-width:400px;padding:48px 40px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(201,166,97,.25);border-radius:6px;
+}
+.login-box h1{font-size:28px;font-weight:600;margin-bottom:6px;color:var(--cream)}
+.login-box p{font-size:14px;opacity:.55;margin-bottom:32px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;opacity:.7;margin-bottom:7px}
+.field input{
+  width:100%;padding:12px 14px;font-size:15px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,166,97,.25);border-radius:4px;
+  color:var(--cream);outline:none;transition:border-color .2s;
+}
+.field input:focus{border-color:var(--gold)}
+.btn-gold{
+  width:100%;padding:13px;font-size:16px;font-weight:600;
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:var(--ink);border-radius:4px;cursor:pointer;
+  transition:opacity .2s;
+}
+.btn-gold:hover{opacity:.88}
+.login-err{margin-top:14px;font-size:13px;color:#f48;text-align:center;display:none}
+
+/* ── App shell ── */
+#app{display:none;min-height:100vh}
+.sidebar{
+  position:fixed;top:0;right:0;bottom:0;width:var(--sidebar);
+  background:var(--ink2);border-left:1px solid rgba(201,166,97,.12);
+  display:flex;flex-direction:column;z-index:20;overflow-y:auto;
+}
+.sidebar-logo{
+  padding:24px 20px 20px;border-bottom:1px solid rgba(201,166,97,.1);
+  display:flex;align-items:center;gap:10px;
+}
+.sidebar-logo svg{flex-shrink:0}
+.sidebar-logo-text{font-size:18px;font-weight:700;color:var(--cream)}
+.sidebar-logo-sub{font-size:10px;letter-spacing:.25em;color:var(--gold);margin-top:3px}
+.sidebar-nav{padding:12px 0;flex:1}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 20px;font-size:14px;color:var(--cream);opacity:.65;
+  transition:all .15s;cursor:pointer;border-right:3px solid transparent;
+  text-align:right;width:100%;
+}
+.nav-item:hover{opacity:1;background:rgba(201,166,97,.06)}
+.nav-item.active{opacity:1;color:var(--gold2);border-right-color:var(--gold);background:rgba(201,166,97,.08)}
+.nav-item .icon{font-size:18px;width:22px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(201,166,97,.1);font-size:12px;opacity:.4}
+.main{margin-right:var(--sidebar);min-height:100vh}
+.topbar{
+  position:sticky;top:0;z-index:10;
+  background:rgba(12,13,29,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(201,166,97,.1);
+  padding:14px 28px;display:flex;align-items:center;justify-content:space-between;
+}
+.topbar h2{font-size:18px;font-weight:600;color:var(--cream)}
+.live-dot{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12px;color:var(--green2);
+}
+.live-dot::before{
+  content:'';width:8px;height:8px;border-radius:50%;background:var(--green2);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.content{padding:28px}
+
+/* ── Stat cards ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{
+  padding:20px 22px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(201,166,97,.14);border-radius:6px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;right:0;width:3px;height:100%;
+  background:var(--gold);opacity:.5;
+}
+.stat-label{font-size:12px;opacity:.5;letter-spacing:.05em;margin-bottom:8px;text-transform:uppercase}
+.stat-value{font-size:32px;font-weight:700;color:var(--cream);line-height:1}
+.stat-sub{font-size:12px;opacity:.5;margin-top:6px}
+.stat-card.green::before{background:var(--green2)}
+.stat-card.wine::before{background:var(--wine2)}
+
+/* ── Charts ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.chart-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(201,166,97,.14);
+  border-radius:6px;padding:22px;
+}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:14px;font-weight:600;margin-bottom:18px;color:var(--gold2)}
+.chart-wrap{position:relative;height:220px}
+
+/* ── Table ── */
+.table-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(201,166,97,.14);
+  border-radius:6px;overflow:hidden;margin-bottom:28px;
+}
+.table-head{
+  padding:18px 22px;border-bottom:1px solid rgba(201,166,97,.1);
+  display:flex;align-items:center;justify-content:space-between;gap:12;flex-wrap:wrap;gap:10px;
+}
+.table-head h3{font-size:15px;font-weight:600;color:var(--gold2)}
+.search-box{
+  padding:8px 14px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,166,97,.2);border-radius:4px;
+  color:var(--cream);font-size:13px;outline:none;width:220px;
+}
+.search-box:focus{border-color:var(--gold)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{
+  padding:12px 18px;text-align:right;font-size:11px;letter-spacing:.08em;
+  opacity:.45;border-bottom:1px solid rgba(201,166,97,.1);white-space:nowrap;
+}
+.tbl td{padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(201,166,97,.04)}
+.badge{
+  display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+}
+.badge-gold{background:rgba(201,166,97,.15);color:var(--gold2)}
+.badge-green{background:rgba(82,183,136,.15);color:var(--green2)}
+.badge-wine{background:rgba(168,50,79,.2);color:#f48}
+.pager{padding:14px 18px;border-top:1px solid rgba(201,166,97,.1);display:flex;align-items:center;gap:10px;font-size:13px;opacity:.6}
+.pager button{padding:5px 12px;border:1px solid rgba(201,166,97,.25);border-radius:3px;font-size:12px;color:var(--cream)}
+.pager button:hover{border-color:var(--gold);opacity:1}
+
+/* ── Real-time panel ── */
+.realtime-list{display:flex;flex-direction:column;gap:8px;min-height:60px}
+.realtime-item{
+  display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(82,183,136,.15);border-radius:4px;
+  font-size:13px;
+}
+.realtime-dot{width:8px;height:8px;border-radius:50%;background:var(--green2);flex-shrink:0;animation:pulse 2s ease-in-out infinite}
+.realtime-screen{color:var(--gold2);font-weight:600}
+.realtime-ip{opacity:.4;font-size:11px;margin-right:auto}
+.empty-state{padding:32px;text-align:center;opacity:.35;font-size:14px}
+
+/* ── Pages ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  :root{--sidebar:0px}
+  .sidebar{display:none}
+  .charts-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-page">
+  <div class="login-box">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+      <svg width="36" height="36" viewBox="-60 -60 120 120">
+        <circle r="42" fill="none" stroke="#c9a661" stroke-width=".8" opacity=".5"/>
+        <ellipse rx="32" ry="18" fill="none" stroke="#c9a661" stroke-width="1.4"/>
+        <circle r="10" fill="none" stroke="#c9a661" stroke-width="1.2"/>
+        <circle r="4" fill="#c9a661"/>
+      </svg>
+      <div>
+        <div style="font-size:20px;font-weight:700">בית עין</div>
+        <div style="font-size:10px;letter-spacing:.25em;color:#c9a661;opacity:.8">לוח בקרה</div>
+      </div>
+    </div>
+    <h1>כניסה למערכת</h1>
+    <p>אזור מנהל — גישה מורשית בלבד</p>
+    <div class="field">
+      <label>כתובת מייל</label>
+      <input type="email" id="l-email" placeholder="admin@example.com" dir="ltr"/>
+    </div>
+    <div class="field">
+      <label>סיסמה</label>
+      <input type="password" id="l-pass" placeholder="••••••••" dir="ltr"/>
+    </div>
+    <button class="btn-gold" onclick="doLogin()">כניסה</button>
+    <div class="login-err" id="l-err">אימייל או סיסמה שגויים</div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="-60 -60 120 120">
+        <circle r="42" fill="none" stroke="#c9a661" stroke-width=".8" opacity=".5"/>
+        <ellipse rx="32" ry="18" fill="none" stroke="#c9a661" stroke-width="1.4"/>
+        <circle r="10" fill="none" stroke="#c9a661" stroke-width="1.2"/>
+        <circle r="4" fill="#c9a661"/>
+      </svg>
+      <div>
+        <div class="sidebar-logo-text">בית עין</div>
+        <div class="sidebar-logo-sub">ADMIN PANEL</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-page="overview" onclick="showPage('overview',this)">
+        <span class="icon">📊</span> סקירה כללית
+      </button>
+      <button class="nav-item" data-page="submissions" onclick="showPage('submissions',this)">
+        <span class="icon">📋</span> הזמנות
+      </button>
+      <button class="nav-item" data-page="analytics" onclick="showPage('analytics',this)">
+        <span class="icon">📈</span> אנליטיקה
+      </button>
+      <button class="nav-item" data-page="realtime" onclick="showPage('realtime',this)">
+        <span class="icon">🟢</span> בזמן אמת
+      </button>
+      <button class="nav-item" data-page="events" onclick="showPage('events',this)">
+        <span class="icon">🔍</span> לוג אירועים
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="user-email"></div>
+      <button onclick="logout()" style="margin-top:8px;font-size:12px;color:var(--wine2)">התנתקות</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <h2 id="page-title">סקירה כללית</h2>
+      <div>
+        <span class="live-dot" id="live-status">מחובר</span>
+        <button onclick="loadAll()" style="margin-right:16px;font-size:12px;opacity:.5;padding:4px 10px;border:1px solid rgba(201,166,97,.2);border-radius:3px">רענן</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Overview Page -->
+      <div class="page active" id="page-overview">
+        <!-- Stat cards -->
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-label">מבקרים סה"כ</div><div class="stat-value" id="s-visitors">—</div><div class="stat-sub">מתחילת הפעילות</div></div>
+          <div class="stat-card green"><div class="stat-label">הזמנות סה"כ</div><div class="stat-value" id="s-subs">—</div><div class="stat-sub">טפסים שנשלחו</div></div>
+          <div class="stat-card wine"><div class="stat-label">הכנסה מוערכת</div><div class="stat-value" id="s-revenue">—</div><div class="stat-sub">₪ סה"כ</div></div>
+          <div class="stat-card"><div class="stat-label">מבקרים היום</div><div class="stat-value" id="s-today-v">—</div><div class="stat-sub" id="s-today-s-wrap">הזמנות היום: <span id="s-today-s">—</span></div></div>
+          <div class="stat-card"><div class="stat-label">כפתורים נלחצו</div><div class="stat-value" id="s-clicks">—</div><div class="stat-sub">סה"כ</div></div>
+          <div class="stat-card green"><div class="stat-label">פעילים עכשיו</div><div class="stat-value" id="s-active">—</div><div class="stat-sub">בשלוש הדקות האחרונות</div></div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="charts-grid">
+          <div class="chart-card full">
+            <div class="chart-title">מבקרים יומיים — 30 ימים אחרונים</div>
+            <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">מסכים — פיזור ביקורים</div>
+            <div class="chart-wrap"><canvas id="chart-screens"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">חבילות שנבחרו</div>
+            <div class="chart-wrap"><canvas id="chart-pkgs"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Top clicks table -->
+        <div class="table-card">
+          <div class="table-head"><h3>כפתורים מובילים</h3></div>
+          <table class="tbl">
+            <thead><tr><th>כפתור</th><th>לחיצות</th></tr></thead>
+            <tbody id="clicks-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Submissions Page -->
+      <div class="page" id="page-submissions">
+        <div class="table-card">
+          <div class="table-head">
+            <h3>כל ההזמנות</h3>
+            <input class="search-box" id="sub-search" placeholder="חיפוש לפי שם, טלפון, מייל..." oninput="loadSubmissions(0)" dir="rtl"/>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>#</th><th>תאריך</th><th>שם</th><th>טלפון</th><th>מייל</th>
+                  <th>חבילה</th><th>מחיר</th><th>תשלום</th><th>הערות</th>
+                </tr>
+              </thead>
+              <tbody id="sub-body"></tbody>
+            </table>
+          </div>
+          <div class="pager" id="sub-pager">
+            <button onclick="subPage--; loadSubmissions(subPage)">‹ קודם</button>
+            <span id="sub-page-info"></span>
+            <button onclick="subPage++; loadSubmissions(subPage)">הבא ›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Page -->
+      <div class="page" id="page-analytics">
+        <div class="charts-grid">
+          <div class="chart-card full">
+            <div class="chart-title">הכנסה יומית — 30 ימים אחרונים (₪)</div>
+            <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
+          </div>
+          <div class="chart-card full">
+            <div class="chart-title">לחיצות על כפתורים — TOP 10</div>
+            <div class="chart-wrap" style="height:300px"><canvas id="chart-clicks"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time Page -->
+      <div class="page" id="page-realtime">
+        <div class="chart-card" style="margin-bottom:20px">
+          <div class="chart-title">🟢 מבקרים פעילים עכשיו</div>
+          <div id="active-count" style="font-size:48px;font-weight:700;margin:12px 0;color:var(--green2)">—</div>
+          <div style="font-size:13px;opacity:.5">מתעדכן כל 5 שניות</div>
+        </div>
+        <div class="table-card">
+          <div class="table-head"><h3>סשנים פעילים</h3></div>
+          <div id="realtime-list" class="realtime-list" style="padding:16px"></div>
+        </div>
+      </div>
+
+      <!-- Events log Page -->
+      <div class="page" id="page-events">
+        <div class="table-card">
+          <div class="table-head">
+            <h3>לוג אירועים</h3>
+            <select id="event-type-filter" onchange="loadEvents(0)" style="padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(201,166,97,.2);border-radius:4px;color:var(--cream);font-size:13px;outline:none">
+              <option value="">כל הסוגים</option>
+              <option value="pageload">pageload</option>
+              <option value="pageview">pageview</option>
+              <option value="click">click</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr><th>#</th><th>סוג</th><th>מסך</th><th>אלמנט</th><th>IP</th><th>זמן</th></tr></thead>
+              <tbody id="events-body"></tbody>
+            </table>
+          </div>
+          <div class="pager" id="events-pager">
+            <button onclick="evtPage--; loadEvents(evtPage)">‹ קודם</button>
+            <span id="evt-page-info"></span>
+            <button onclick="evtPage++; loadEvents(evtPage)">הבא ›</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<script>
+let TOKEN = localStorage.getItem('ein_admin_token') || '';
+let charts = {};
+let subPage = 0;
+let evtPage = 0;
+let rtSource = null;
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const err   = document.getElementById('l-err');
+  err.style.display = 'none';
+  try {
+    const r = await fetch('/api/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const d = await r.json();
+    if (!r.ok) { err.style.display='block'; return; }
+    TOKEN = d.token;
+    localStorage.setItem('ein_admin_token', TOKEN);
+    document.getElementById('user-email').textContent = email;
+    showApp();
+  } catch {
+    err.style.display = 'block';
+  }
+}
+document.getElementById('l-pass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
+function logout() {
+  TOKEN = '';
+  localStorage.removeItem('ein_admin_token');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  if (rtSource) { rtSource.close(); rtSource = null; }
+}
+
+function api(path, opts={}) {
+  return fetch(path, { ...opts, headers: { 'Content-Type':'application/json', Authorization:'Bearer '+TOKEN, ...(opts.headers||{}) } });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+function showApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadAll();
+  startRealtime();
+}
+
+function loadAll() {
+  loadStats();
+  loadSubmissions(0);
+  loadEvents(0);
+}
+
+async function loadStats() {
+  const r = await api('/api/admin/stats');
+  if (!r.ok) { if (r.status===401) logout(); return; }
+  const d = await r.json();
+  const s = d.summary;
+
+  setText('s-visitors', fmtNum(s.totalVisitors));
+  setText('s-subs',     fmtNum(s.totalSubmissions));
+  setText('s-revenue',  '₪' + fmtNum(s.revenueTotal));
+  setText('s-today-v',  fmtNum(s.todayVisitors));
+  setText('s-today-s',  fmtNum(s.todaySubmissions));
+  setText('s-clicks',   fmtNum(s.totalClicks));
+  setText('s-active',   fmtNum(s.activeNow));
+
+  buildDailyChart(d.dailyVisitors);
+  buildRevenueChart(d.dailyRevenue);
+  buildScreenChart(d.screenViews);
+  buildPkgChart(d.pkgBreakdown);
+  buildClicksChart(d.clicksByElement);
+  buildClicksTable(d.clicksByElement);
+}
+
+// ── Submissions ───────────────────────────────────────────────────────────────
+
+async function loadSubmissions(page) {
+  subPage = Math.max(0, page);
+  const search = encodeURIComponent(document.getElementById('sub-search')?.value || '');
+  const r = await api(`/api/admin/submissions?page=${subPage}&search=${search}`);
+  if (!r.ok) return;
+  const { submissions, total } = await r.json();
+  const limit = 50;
+  const tbody = document.getElementById('sub-body');
+  tbody.innerHTML = submissions.length ? submissions.map((s,i) => {
+    let names = '—';
+    try { names = JSON.parse(s.names || '[]').map(n => n.first ? `${n.first} / ${n.mother}` : '').filter(Boolean).join('<br>'); } catch{}
+    const pkgBadge = s.pkg_name ? `<span class="badge badge-gold">${s.pkg_name}</span>` : '—';
+    return `<tr>
+      <td style="opacity:.4">${subPage*limit+i+1}</td>
+      <td style="white-space:nowrap;opacity:.6">${fmtDate(s.created_at)}</td>
+      <td>${names || '—'}</td>
+      <td dir="ltr">${s.phone||'—'}</td>
+      <td dir="ltr" style="opacity:.75">${s.email||'—'}</td>
+      <td>${pkgBadge}</td>
+      <td style="color:var(--gold2)">₪${s.price||0}</td>
+      <td><span class="badge badge-green">${s.payment||'—'}</span></td>
+      <td style="max-width:200px;opacity:.65;font-size:12px">${(s.concerns||'').slice(0,80)||'—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" class="empty-state">אין הזמנות עדיין</td></tr>';
+  setText('sub-page-info', `עמוד ${subPage+1} · ${total} סה"כ`);
+}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+
+async function loadEvents(page) {
+  evtPage = Math.max(0, page);
+  const type = document.getElementById('event-type-filter')?.value || '';
+  const r = await api(`/api/admin/events?page=${evtPage}&type=${type}`);
+  if (!r.ok) return;
+  const { events, total } = await r.json();
+  const limit = 100;
+  const tbody = document.getElementById('events-body');
+  tbody.innerHTML = events.length ? events.map((e,i) => {
+    const typeColor = e.type==='click'?'badge-wine':e.type==='pageload'?'badge-green':'badge-gold';
+    return `<tr>
+      <td style="opacity:.3">${evtPage*limit+i+1}</td>
+      <td><span class="badge ${typeColor}">${e.type}</span></td>
+      <td style="color:var(--gold2)">${e.screen||'—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.element||'—'}</td>
+      <td dir="ltr" style="opacity:.45;font-size:12px">${(e.ip||'').replace('::ffff:','')}</td>
+      <td style="opacity:.5;font-size:12px;white-space:nowrap">${fmtDate(e.created_at)}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="empty-state">אין אירועים עדיין</td></tr>';
+  setText('evt-page-info', `עמוד ${evtPage+1} · ${total} סה"כ`);
+}
+
+// ── Real-time ─────────────────────────────────────────────────────────────────
+
+function startRealtime() {
+  if (rtSource) rtSource.close();
+  rtSource = new EventSource('/api/admin/realtime?token=' + TOKEN);
+  rtSource.onmessage = (e) => {
+    const list = JSON.parse(e.data);
+    setText('active-count', list.length);
+    setText('s-active', list.length);
+    const el = document.getElementById('realtime-list');
+    if (!el) return;
+    el.innerHTML = list.length ? list.map(s =>
+      `<div class="realtime-item">
+        <div class="realtime-dot"></div>
+        <span class="realtime-screen">${screenLabel(s.screen)}</span>
+        <span class="realtime-ip">${(s.ip||'').replace('::ffff:','')}</span>
+        <span style="opacity:.4;font-size:11px">${fmtAgo(s.last_seen)}</span>
+      </div>`
+    ).join('') : '<div class="empty-state">אין מבקרים פעילים כרגע</div>';
+  };
+  rtSource.onerror = () => {
+    // reconnect handled by browser
+  };
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+
+const C = { gold:'#c9a661', gold2:'#e3c98a', ink:'#0c0d1d', cream:'rgba(244,236,216,.7)', green:'#52b788', wine:'#a8324f' };
+
+function chartDefaults() {
+  return {
+    plugins:{ legend:{ labels:{ color: C.cream, font:{ size:12 } } } },
+    scales:{
+      x:{ ticks:{ color:C.cream, font:{size:11} }, grid:{ color:'rgba(255,255,255,.05)' } },
+      y:{ ticks:{ color:C.cream, font:{size:11} }, grid:{ color:'rgba(255,255,255,.05)' } },
+    },
+  };
+}
+
+function buildDailyChart(data) {
+  destroy('chart-daily');
+  const ctx = document.getElementById('chart-daily').getContext('2d');
+  charts['daily'] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: data.map(d=>d.date),
+      datasets:[{ label:'מבקרים', data: data.map(d=>d.count),
+        borderColor:C.gold, backgroundColor:'rgba(201,166,97,.12)',
+        fill:true, tension:.4, pointRadius:3, pointBackgroundColor:C.gold }]
+    },
+    options:{ ...chartDefaults(), responsive:true, maintainAspectRatio:false }
+  });
+}
+
+function buildRevenueChart(data) {
+  destroy('chart-revenue');
+  const ctx = document.getElementById('chart-revenue')?.getContext('2d');
+  if (!ctx) return;
+  charts['revenue'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: data.map(d=>d.date),
+      datasets:[{ label:'הכנסה ₪', data: data.map(d=>d.count||0),
+        backgroundColor:'rgba(82,183,136,.4)', borderColor:C.green, borderWidth:1 }]
+    },
+    options:{ ...chartDefaults(), responsive:true, maintainAspectRatio:false }
+  });
+}
+
+function buildScreenChart(data) {
+  destroy('chart-screens');
+  const ctx = document.getElementById('chart-screens').getContext('2d');
+  const colors = [C.gold,'#52b788','#a8324f','#4a90e2','#9b59b6','#f39c12'];
+  charts['screens'] = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: data.map(d=>screenLabel(d.screen)),
+      datasets:[{ data: data.map(d=>d.count), backgroundColor: colors, borderColor:'rgba(12,13,29,.8)', borderWidth:2 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:C.cream, font:{size:12} } } } }
+  });
+}
+
+function buildPkgChart(data) {
+  destroy('chart-pkgs');
+  const ctx = document.getElementById('chart-pkgs').getContext('2d');
+  charts['pkgs'] = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: data.map(d=>d.pkg_name||'—'),
+      datasets:[{ data: data.map(d=>d.count),
+        backgroundColor:['rgba(201,166,97,.7)','rgba(82,183,136,.7)','rgba(168,50,79,.7)'],
+        borderColor:'rgba(12,13,29,.8)', borderWidth:2 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:C.cream, font:{size:12} } } } }
+  });
+}
+
+function buildClicksChart(data) {
+  destroy('chart-clicks');
+  const ctx = document.getElementById('chart-clicks')?.getContext('2d');
+  if (!ctx) return;
+  charts['clicks'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: data.map(d=>d.element),
+      datasets:[{ label:'לחיצות', data: data.map(d=>d.count),
+        backgroundColor:'rgba(201,166,97,.4)', borderColor:C.gold, borderWidth:1 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:C.cream, font:{size:11} }, grid:{ color:'rgba(255,255,255,.05)' } },
+        y:{ ticks:{ color:C.cream, font:{size:11} }, grid:{ color:'rgba(255,255,255,.05)' } },
+      }
+    }
+  });
+}
+
+function buildClicksTable(data) {
+  const tbody = document.getElementById('clicks-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = data.length ? data.map(d =>
+    `<tr><td>${d.element}</td><td><strong>${d.count}</strong></td></tr>`
+  ).join('') : '<tr><td colspan="2" class="empty-state">אין לחיצות עדיין</td></tr>';
+}
+
+function destroy(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+const pageTitles = {
+  overview:'סקירה כללית', submissions:'הזמנות',
+  analytics:'אנליטיקה', realtime:'בזמן אמת', events:'לוג אירועים'
+};
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  setText('page-title', pageTitles[name] || name);
+  if (name === 'analytics') { buildRevenueChart([]); buildClicksChart([]); loadStats(); }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function setText(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+function fmtNum(n) { return Number(n||0).toLocaleString('he-IL'); }
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s.endsWith('Z')?s:s+' UTC');
+  return d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtAgo(s) {
+  if (!s) return '';
+  const diff = (Date.now() - new Date(s.endsWith('Z')?s:s+' UTC').getTime()) / 1000;
+  if (diff < 60) return `לפני ${Math.round(diff)} שנ׳`;
+  return `לפני ${Math.round(diff/60)} דקות`;
+}
+function screenLabel(s) {
+  const map = { home:'בית', about:'על השירות', quiz:'אבחון', packages:'חבילות', booking:'הזמנה', confirmation:'אישור', loading:'טעינה', unknown:'לא ידוע' };
+  return map[s] || s || '—';
+}
+
+// ── SSE needs token in URL since EventSource can't set headers ────────────────
+// Patch: proxy token through query param, server reads it as fallback
+const origStart = startRealtime;
+function startRealtime() {
+  if (rtSource) rtSource.close();
+  rtSource = new EventSource('/api/admin/realtime?t=' + encodeURIComponent(TOKEN));
+  rtSource.onmessage = (e) => {
+    const list = JSON.parse(e.data);
+    setText('active-count', list.length);
+    setText('s-active', list.length);
+    const el = document.getElementById('realtime-list');
+    if (!el) return;
+    el.innerHTML = list.length ? list.map(s =>
+      `<div class="realtime-item">
+        <div class="realtime-dot"></div>
+        <span class="realtime-screen">${screenLabel(s.screen)}</span>
+        <span class="realtime-ip">${(s.ip||'').replace('::ffff:','')}</span>
+        <span style="opacity:.4;font-size:11px">${fmtAgo(s.last_seen)}</span>
+      </div>`
+    ).join('') : '<div class="empty-state">אין מבקרים פעילים כרגע</div>';
+  };
+}
+
+// ── Auto-login if token saved ─────────────────────────────────────────────────
+if (TOKEN) {
+  api('/api/admin/stats').then(r => {
+    if (r.ok) {
+      const email = localStorage.getItem('ein_admin_email') || '';
+      document.getElementById('user-email').textContent = email;
+      showApp();
+    } else {
+      TOKEN = '';
+      localStorage.removeItem('ein_admin_token');
+    }
+  }).catch(() => {});
+}
+
+document.getElementById('l-email').addEventListener('change', e => {
+  localStorage.setItem('ein_admin_email', e.target.value);
+});
+</script>
+</body>
+</html>
