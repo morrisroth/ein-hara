@@ -64,8 +64,8 @@ function Hero({ onNav, vp }) {
           <h1 style={{
             fontFamily: "'Frank Ruhl Libre', serif",
             fontWeight: 500,
-            fontSize: "clamp(56px, 7.5vw, 104px)",
-            lineHeight: .95,
+            fontSize: vp.isMobile ? "clamp(36px, 9vw, 52px)" : "clamp(56px, 7.5vw, 104px)",
+            lineHeight: vp.isMobile ? 1.1 : .95,
             letterSpacing: "-.01em",
             color: "var(--cream)",
             marginBottom: 24,
@@ -75,18 +75,18 @@ function Hero({ onNav, vp }) {
           </h1>
 
           <p style={{
-            fontSize: 21, lineHeight: 1.55, color: "var(--cream)", opacity: .78,
+            fontSize: vp.isMobile ? 16 : 21, lineHeight: 1.6, color: "var(--cream)", opacity: .78,
             maxWidth: 540, marginBottom: 36, textWrap: "pretty",
           }}>
             בכוח אותיות קדושות, צירופי שמות וסודות תורת הקבלה — מקובלים מוסמכים פותחים שערים נעולים, מסירים את עין הרע, ומאירים את הנשמה. הכל מהבית, בלי לצאת מהדלת.
           </p>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <GoldButton size="lg" onClick={() => onNav("packages")}>
+            <GoldButton size={vp.isMobile ? "md" : "lg"} onClick={() => onNav("packages")}>
               הזמנת חבילה
-              <span style={{ fontSize: 22, transform: "translateY(-1px)" }}>‹</span>
+              <span style={{ fontSize: vp.isMobile ? 18 : 22, transform: "translateY(-1px)" }}>‹</span>
             </GoldButton>
-            <GoldButton size="lg" variant="ghost" onClick={() => onNav("quiz")}>
+            <GoldButton size={vp.isMobile ? "md" : "lg"} variant="ghost" onClick={() => onNav("quiz")}>
               אבחון מהיר — 60 שניות
             </GoldButton>
           </div>
@@ -384,7 +384,7 @@ function Testimonials({ vp }) {
               }}>״</div>
               <blockquote style={{
                 fontFamily: "'Frank Ruhl Libre', serif",
-                fontSize: 21, lineHeight: 1.5, color: "var(--cream)", marginBottom: 22,
+                fontSize: vp.isMobile ? 17 : 21, lineHeight: 1.5, color: "var(--cream)", marginBottom: 22,
                 textWrap: "pretty",
               }}>{t.text}</blockquote>
               <Divider width={60} />
@@ -410,6 +410,7 @@ function Testimonials({ vp }) {
 
 function FAQPreview() {
   const [open, setOpen] = useStateHome(0);
+  const vp = useViewport();
   const qs = [
     { q: "האם הטיפול עובד למי שלא דתי?", a: "השירות מתאים לכל אדם, ללא תלות בשמירה דתית. רבים מהלקוחות שלנו חילונים גמורים שמחפשים מסורת ושקט נפשי." },
     { q: "מה זה ראש חודש ולמה דווקא אז?", a: "ראש חודש עברי הוא היום שבו מתחדשת הלבנה. במסורת הקבלית זה הזמן החזק ביותר להתחדשות, פתיחת מזל והסרת עיכובים." },
@@ -417,7 +418,7 @@ function FAQPreview() {
     { q: "האם זה דורש מידע אישי?", a: "רק שם פרטי ושם האם — לפי המסורת. אין צורך בתעודת זהות, כתובת או פרטים רגישים." },
   ];
   return (
-    <section style={{ padding: "60px 32px 100px" }}>
+    <section style={{ padding: vp.isMobile ? "50px 18px 70px" : "60px 32px 100px" }}>
       <div style={{ maxWidth: 920, margin: "0 auto" }}>
         <SectionHeading overline="שאלות נפוצות" title="מה כדאי לדעת לפני שמזמינים"/>
         <div style={{ marginTop: 40 }}>
@@ -430,7 +431,7 @@ function FAQPreview() {
                 width: "100%", padding: "22px 0",
                 display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "right",
               }}>
-                <span style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 22, color: "var(--cream)" }}>{it.q}</span>
+                <span style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: vp.isMobile ? 17 : 22, color: "var(--cream)", textAlign: "right", flex: 1, paddingLeft: 12 }}>{it.q}</span>
                 <span style={{
                   color: "var(--gold)", fontSize: 24,
                   transition: "transform .3s", transform: open === i ? "rotate(45deg)" : "rotate(0)",

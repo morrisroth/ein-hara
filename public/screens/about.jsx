@@ -42,7 +42,7 @@ function AboutStory({ vp }) {
       }}>
         <div>
           <div style={{ fontFamily: "'Miriam Libre', serif", fontSize: 11, letterSpacing: ".3em", color: "var(--gold)", marginBottom: 14 }}>ההיסטוריה</div>
-          <h3 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 38, fontWeight: 500, color: "var(--cream)", lineHeight: 1.15, marginBottom: 20 }}>
+          <h3 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: vp.isMobile ? 26 : 38, fontWeight: 500, color: "var(--cream)", lineHeight: 1.2, marginBottom: 20, textWrap: "balance" }}>
             למעלה מ-3,000 שנה של עבודה רוחנית.
           </h3>
           <p style={{ fontSize: 16.5, opacity: .8, lineHeight: 1.8, marginBottom: 16 }}>
@@ -55,17 +55,20 @@ function AboutStory({ vp }) {
             זו לא אמונה תפלה — זו תורה שלמה, מתועדת, חיה ונושמת. אנו רק מנגישים אותה לדור שלנו, באופן שהיה רוצה בו הרב.
           </p>
         </div>
-        <div style={{
-          position: "relative",
-          height: vp.isMobile ? 320 : 460,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
+        {!vp.isMobile && (
           <div style={{
-            position: "absolute", inset: 0,
-            background: "radial-gradient(circle at center, rgba(201,166,97,.15), transparent 65%)",
-          }}/>
-          <BigEye />
-        </div>
+            position: "relative",
+            height: 460,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "radial-gradient(circle at center, rgba(201,166,97,.15), transparent 65%)",
+            }}/>
+            <BigEye />
+          </div>
+        )}
       </div>
 
       {/* Timeline ribbon */}
@@ -251,7 +254,7 @@ function AboutPrinciples({ vp }) {
                 marginBottom: 18, marginInlineStart: -8,
               }}>{s.l}</div>
 
-              <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 24, color: "var(--cream)", marginBottom: 10, lineHeight: 1.15 }}>{s.t}</div>
+              <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: vp.isMobile ? 20 : 24, color: "var(--cream)", marginBottom: 10, lineHeight: 1.15 }}>{s.t}</div>
               <div style={{ fontSize: 13.5, opacity: .7, lineHeight: 1.7, textWrap: "pretty" }}>{s.d}</div>
             </div>
           ))}
