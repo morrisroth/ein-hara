@@ -83,18 +83,14 @@ function BookingScreen({ selectedPkgId, onNav, onConfirm }) {
           <div className="fade-up" key={step}>
             {step === 0 && <StepPackage form={form} setF={setF} vp={vp} />}
             {step === 1 && <StepDetails form={form} setF={setF} pkg={pkg} vp={vp} />}
-            {step === 2 && <StepPayment form={form} setF={setF} pkg={pkg} vp={vp} />}
+            {step === 2 && <StepPayment form={form} setF={setF} pkg={pkg} vp={vp} onPaymentDone={() => onConfirm(form)} />}
             <div style={{ marginTop: 36, display: "flex", justifyContent: "space-between", gap: 12 }}>
               <GoldButton variant="ghost" onClick={() => step === 0 ? onNav("packages") : setStep(step - 1)}>
                 ‹ {step === 0 ? "ביטול" : "שלב קודם"}
               </GoldButton>
-              {step < steps.length - 1 ? (
+              {step < steps.length - 1 && (
                 <GoldButton onClick={() => valid[step] && setStep(step + 1)} style={{ opacity: valid[step] ? 1 : .35, cursor: valid[step] ? "pointer" : "not-allowed" }}>
                   המשך לשלב הבא ›
-                </GoldButton>
-              ) : (
-                <GoldButton onClick={() => onConfirm(form)}>
-                  סיום הזמנה ›
                 </GoldButton>
               )}
             </div>
@@ -313,13 +309,13 @@ function StepDetails({ form, setF, pkg, vp = {} }) {
 }
 
 // --- Step 3: payment via Nedarim Plus ---
-function StepPayment({ form, pkg, vp = {} }) {
-  const [paid, setPaid] = useStateBook(false);
+function StepPayment({ form, pkg, vp = {}, onPaymentDone }) {
   const [popupOpen, setPopupOpen] = useStateBook(false);
+  const [manualFallback, setManualFallback] = useStateBook(false);
   const popupRef = React.useRef(null);
 
   const BASE = 'https://www.matara.pro/nedarimplus/online/?mosad=7018027';
-  const REDIRECT = '&Redirect=' + encodeURIComponent('http://213.199.53.73:3001');
+  const REDIRECT = '&Redirect=' + encodeURIComponent('http://213.199.53.73:3001/?paid=1');
   const PKG_URLS = {
     segula:  BASE + '&OnlyNormal=1&Amount=149&AmountLock=1&Payment=1&PaymentLock=1' + REDIRECT,
     shmira:  BASE + '&NormalDefault=1&OnlyNormal=1&Amount=258&AmountLock=1&Payment=2&PaymentLock=1&Analytic=%D7%97%D7%91%D7%99%D7%9C%D7%AA%20%D7%A9%D7%9E%D7%99%D7%A8%D7%94%20-%20%D7%91%D7%99%D7%AA%20%D7%A2%D7%99%D7%9F' + REDIRECT,
@@ -334,6 +330,22 @@ function StepPayment({ form, pkg, vp = {} }) {
   };
   const label = PKG_LABELS[pkg.id] || PKG_LABELS.segula;
 
+  // Listen for postMessage from the payment popup/tab
+  useEffectBook(() => {
+    const handler = (e) => {
+      if (e.data && e.data.nedarimPaid) {
+        setPopupOpen(false);
+        if (popupRef.current && !popupRef.current.closed) {
+          try { popupRef.current.close(); } catch(_) {}
+        }
+        popupRef.current = null;
+        if (onPaymentDone) onPaymentDone();
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [onPaymentDone]);
+
   const handlePayClick = () => {
     const w = 580, h = 720;
     const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - w) / 2));
@@ -341,18 +353,21 @@ function StepPayment({ form, pkg, vp = {} }) {
     const popup = window.open(payUrl, 'nedarim_pay',
       `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`);
     if (!popup) {
+      // Popup blocked — open as new tab (postMessage still works)
       window.open(payUrl, '_blank');
-      setTimeout(() => setPaid(true), 2000);
+      setManualFallback(true);
       return;
     }
     popupRef.current = popup;
     setPopupOpen(true);
+    setManualFallback(false);
+    // Fallback: if popup closed without postMessage (e.g. user dismissed)
     const timer = setInterval(() => {
       if (popup.closed) {
         clearInterval(timer);
         setPopupOpen(false);
-        setPaid(true);
         popupRef.current = null;
+        setManualFallback(true);
       }
     }, 500);
   };
@@ -361,7 +376,7 @@ function StepPayment({ form, pkg, vp = {} }) {
     <div>
       <h2 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontWeight: 500, fontSize: vp.isMobile ? 28 : 36, color: "var(--cream)", marginBottom: 10 }}>תשלום מאובטח</h2>
       <p style={{ opacity: .65, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-        לחצו על כפתור התשלום — יפתח חלון תשלום של נדרים פלוס. לאחר השלמת התשלום החלון ייסגר אוטומטית.
+        לחצו על כפתור התשלום — יפתח חלון נדרים פלוס. לאחר השלמת התשלום ההזמנה תאושר אוטומטית.
       </p>
 
       {/* Summary box */}
@@ -382,9 +397,7 @@ function StepPayment({ form, pkg, vp = {} }) {
         </div>
         <button onClick={handlePayClick} disabled={popupOpen} style={{
           padding: "18px 36px",
-          background: popupOpen
-            ? "rgba(201,166,97,.3)"
-            : "linear-gradient(180deg, #e3c98a, #c9a661)",
+          background: popupOpen ? "rgba(201,166,97,.3)" : "linear-gradient(180deg, #e3c98a, #c9a661)",
           color: popupOpen ? "var(--cream)" : "#0c0d1d",
           fontFamily: "'Frank Ruhl Libre', serif",
           fontSize: 20, fontWeight: 700,
@@ -399,41 +412,35 @@ function StepPayment({ form, pkg, vp = {} }) {
         onMouseEnter={e => { if (!popupOpen) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 30px -8px rgba(201,166,97,.7)"; } }}
         onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = popupOpen ? "none" : "0 8px 24px -8px rgba(201,166,97,.6)"; }}
         >
-          🔒 {popupOpen ? "חלון התשלום פתוח..." : "לתשלום בנדרים פלוס"}
+          🔒 {popupOpen ? "ממתין לאישור תשלום..." : "לתשלום בנדרים פלוס"}
         </button>
       </div>
 
       {/* Status */}
-      {paid ? (
+      {popupOpen ? (
         <div style={{
-          padding: "16px 20px",
-          background: "rgba(82,183,136,.1)",
-          border: "1px solid rgba(82,183,136,.4)",
-          borderRadius: 2,
-          display: "flex", alignItems: "center", gap: 12,
-          color: "#52b788", fontSize: 15,
-        }}>
-          <span style={{ fontSize: 20 }}>✓</span>
-          <span>התשלום הושלם! לחצו על <strong>סיום הזמנה</strong> למטה.</span>
-        </div>
-      ) : popupOpen ? (
-        <div style={{
-          padding: "14px 18px",
-          background: "rgba(201,166,97,.06)",
-          border: "1px solid rgba(201,166,97,.25)",
-          borderRadius: 2,
-          fontSize: 13, lineHeight: 1.65,
-          display: "flex", gap: 10, alignItems: "center",
+          padding: "14px 18px", background: "rgba(201,166,97,.06)",
+          border: "1px solid rgba(201,166,97,.25)", borderRadius: 2,
+          fontSize: 13, lineHeight: 1.65, display: "flex", gap: 10, alignItems: "center",
         }}>
           <span>⏳</span>
-          <span>ממתינים להשלמת התשלום בחלון שנפתח...</span>
+          <span>ממתינים להשלמת התשלום בחלון שנפתח... לאחר התשלום ההזמנה תאושר אוטומטית.</span>
+        </div>
+      ) : manualFallback ? (
+        <div style={{
+          padding: "16px 20px", background: "rgba(201,166,97,.06)",
+          border: "1px solid rgba(201,166,97,.3)", borderRadius: 2,
+          display: "flex", flexDirection: "column", gap: 12,
+        }}>
+          <div style={{ fontSize: 14, lineHeight: 1.65 }}>
+            לאחר השלמת התשלום בחלון שנפתח — לחצו כאן לאישור הזמנה:
+          </div>
+          <GoldButton onClick={onPaymentDone}>סיום הזמנה ›</GoldButton>
         </div>
       ) : (
         <div style={{
-          padding: "14px 18px",
-          background: "rgba(255,255,255,.02)",
-          border: "1px solid rgba(201,166,97,.15)",
-          borderRadius: 2,
+          padding: "14px 18px", background: "rgba(255,255,255,.02)",
+          border: "1px solid rgba(201,166,97,.15)", borderRadius: 2,
           fontSize: 13, opacity: .65, lineHeight: 1.65,
           display: "flex", gap: 10, alignItems: "center",
         }}>
