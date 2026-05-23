@@ -315,6 +315,8 @@ function StepDetails({ form, setF, pkg, vp = {} }) {
 // --- Step 3: payment via Nedarim Plus ---
 function StepPayment({ form, pkg, vp = {} }) {
   const [paid, setPaid] = useStateBook(false);
+  const [popupOpen, setPopupOpen] = useStateBook(false);
+  const popupRef = React.useRef(null);
 
   const BASE = 'https://www.matara.pro/nedarimplus/online/?mosad=7018027';
   const REDIRECT = '&Redirect=' + encodeURIComponent('http://213.199.53.73:3001');
@@ -333,15 +335,33 @@ function StepPayment({ form, pkg, vp = {} }) {
   const label = PKG_LABELS[pkg.id] || PKG_LABELS.segula;
 
   const handlePayClick = () => {
-    window.open(payUrl, '_blank', 'noopener');
-    setTimeout(() => setPaid(true), 1500);
+    const w = 580, h = 720;
+    const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - w) / 2));
+    const top  = Math.max(0, Math.round(window.screenY + (window.outerHeight - h) / 2));
+    const popup = window.open(payUrl, 'nedarim_pay',
+      `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`);
+    if (!popup) {
+      window.open(payUrl, '_blank');
+      setTimeout(() => setPaid(true), 2000);
+      return;
+    }
+    popupRef.current = popup;
+    setPopupOpen(true);
+    const timer = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(timer);
+        setPopupOpen(false);
+        setPaid(true);
+        popupRef.current = null;
+      }
+    }, 500);
   };
 
   return (
     <div>
       <h2 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontWeight: 500, fontSize: vp.isMobile ? 28 : 36, color: "var(--cream)", marginBottom: 10 }}>תשלום מאובטח</h2>
       <p style={{ opacity: .65, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-        לחצו על כפתור התשלום — תועברו לדף נדרים פלוס המאובטח. לאחר התשלום חזרו לכאן ולחצו <strong style={{ color: "var(--gold-2)" }}>סיום הזמנה</strong>.
+        לחצו על כפתור התשלום — יפתח חלון תשלום של נדרים פלוס. לאחר השלמת התשלום החלון ייסגר אוטומטית.
       </p>
 
       {/* Summary box */}
@@ -360,23 +380,26 @@ function StepPayment({ form, pkg, vp = {} }) {
           </div>
           <div style={{ fontSize: 13, opacity: .55, marginTop: 8 }}>{label.sub}</div>
         </div>
-        <button onClick={handlePayClick} style={{
+        <button onClick={handlePayClick} disabled={popupOpen} style={{
           padding: "18px 36px",
-          background: "linear-gradient(180deg, #e3c98a, #c9a661)",
-          color: "#0c0d1d",
+          background: popupOpen
+            ? "rgba(201,166,97,.3)"
+            : "linear-gradient(180deg, #e3c98a, #c9a661)",
+          color: popupOpen ? "var(--cream)" : "#0c0d1d",
           fontFamily: "'Frank Ruhl Libre', serif",
           fontSize: 20, fontWeight: 700,
           border: "1px solid #8a6a2a",
           borderRadius: 2,
-          cursor: "pointer",
-          boxShadow: "0 8px 24px -8px rgba(201,166,97,.6)",
+          cursor: popupOpen ? "default" : "pointer",
+          boxShadow: popupOpen ? "none" : "0 8px 24px -8px rgba(201,166,97,.6)",
           transition: "all .2s",
           display: "flex", alignItems: "center", gap: 10,
+          opacity: popupOpen ? .6 : 1,
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 30px -8px rgba(201,166,97,.7)"; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 8px 24px -8px rgba(201,166,97,.6)"; }}
+        onMouseEnter={e => { if (!popupOpen) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 30px -8px rgba(201,166,97,.7)"; } }}
+        onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = popupOpen ? "none" : "0 8px 24px -8px rgba(201,166,97,.6)"; }}
         >
-          🔒 לתשלום בנדרים פלוס
+          🔒 {popupOpen ? "חלון התשלום פתוח..." : "לתשלום בנדרים פלוס"}
         </button>
       </div>
 
@@ -391,7 +414,19 @@ function StepPayment({ form, pkg, vp = {} }) {
           color: "#52b788", fontSize: 15,
         }}>
           <span style={{ fontSize: 20 }}>✓</span>
-          <span>השלמתם את התשלום? לחצו על <strong>סיום הזמנה</strong> למטה.</span>
+          <span>התשלום הושלם! לחצו על <strong>סיום הזמנה</strong> למטה.</span>
+        </div>
+      ) : popupOpen ? (
+        <div style={{
+          padding: "14px 18px",
+          background: "rgba(201,166,97,.06)",
+          border: "1px solid rgba(201,166,97,.25)",
+          borderRadius: 2,
+          fontSize: 13, lineHeight: 1.65,
+          display: "flex", gap: 10, alignItems: "center",
+        }}>
+          <span>⏳</span>
+          <span>ממתינים להשלמת התשלום בחלון שנפתח...</span>
         </div>
       ) : (
         <div style={{
