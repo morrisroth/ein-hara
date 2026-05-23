@@ -314,10 +314,12 @@ function StepDetails({ form, setF, pkg, vp = {} }) {
 
 // --- Step 3: payment via Nedarim Plus ---
 function StepPayment({ form, pkg, vp = {} }) {
+  const [paid, setPaid] = useStateBook(false);
+
   const desc = encodeURIComponent('חבילת ' + pkg.tier + ' - בית עין');
   const firstName = (form.names[0] && form.names[0].first) ? encodeURIComponent(form.names[0].first) : '';
   const email = form.email ? encodeURIComponent(form.email) : '';
-  const iframeSrc =
+  const payUrl =
     'https://www.nedarimplus.co.il/WidgetsV5/Widget.aspx' +
     '?c=7018027' +
     '&sum=' + pkg.price +
@@ -325,42 +327,80 @@ function StepPayment({ form, pkg, vp = {} }) {
     (firstName ? '&fname=' + firstName : '') +
     (email ? '&email=' + email : '');
 
+  const handlePayClick = () => {
+    window.open(payUrl, '_blank', 'noopener');
+    setTimeout(() => setPaid(true), 1500);
+  };
+
   return (
     <div>
       <h2 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontWeight: 500, fontSize: vp.isMobile ? 28 : 36, color: "var(--cream)", marginBottom: 10 }}>תשלום מאובטח</h2>
-      <p style={{ opacity: .65, marginBottom: 22, fontSize: 15, lineHeight: 1.6 }}>
-        מלאו את פרטי התשלום בטופס למטה. לאחר אישור התשלום לחצו על <strong style={{ color: "var(--gold-2)" }}>סיום הזמנה</strong>.
+      <p style={{ opacity: .65, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
+        לחצו על כפתור התשלום — תועברו לדף נדרים פלוס המאובטח. לאחר התשלום חזרו לכאן ולחצו <strong style={{ color: "var(--gold-2)" }}>סיום הזמנה</strong>.
       </p>
 
+      {/* Summary box */}
       <div style={{
+        padding: "28px 26px",
+        background: "linear-gradient(135deg, rgba(201,166,97,.1), rgba(201,166,97,.02))",
         border: "1px solid rgba(201,166,97,.3)",
         borderRadius: 2,
-        overflow: "hidden",
-        background: "#fff",
-        minHeight: vp.isMobile ? 500 : 460,
+        marginBottom: 20,
+        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16,
       }}>
-        <iframe
-          src={iframeSrc}
-          width="100%"
-          height={vp.isMobile ? "520" : "480"}
-          frameBorder="0"
-          scrolling="auto"
-          style={{ display: "block", width: "100%" }}
-          title="תשלום נדרים פלוס"
-        />
+        <div>
+          <div style={{ fontFamily: "'Miriam Libre', serif", fontSize: 10, letterSpacing: ".3em", color: "var(--gold)", marginBottom: 6 }}>לתשלום</div>
+          <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 42, color: "var(--cream)", lineHeight: 1 }}>
+            ₪{pkg.price}
+          </div>
+          <div style={{ fontSize: 13, opacity: .55, marginTop: 6 }}>חבילת {pkg.tier} · {pkg.duration}</div>
+        </div>
+        <button onClick={handlePayClick} style={{
+          padding: "18px 36px",
+          background: "linear-gradient(180deg, #e3c98a, #c9a661)",
+          color: "#0c0d1d",
+          fontFamily: "'Frank Ruhl Libre', serif",
+          fontSize: 20, fontWeight: 700,
+          border: "1px solid #8a6a2a",
+          borderRadius: 2,
+          cursor: "pointer",
+          boxShadow: "0 8px 24px -8px rgba(201,166,97,.6)",
+          transition: "all .2s",
+          display: "flex", alignItems: "center", gap: 10,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 30px -8px rgba(201,166,97,.7)"; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 8px 24px -8px rgba(201,166,97,.6)"; }}
+        >
+          🔒 לתשלום בנדרים פלוס
+        </button>
       </div>
 
-      <div style={{
-        marginTop: 16, padding: "14px 18px",
-        background: "rgba(201,166,97,.05)",
-        border: "1px solid rgba(201,166,97,.18)", borderRadius: 2,
-        display: "flex", gap: 12, alignItems: "center",
-      }}>
-        <div style={{ fontSize: 20, color: "var(--gold)" }}>🔒</div>
-        <div style={{ fontSize: 13, opacity: .75, lineHeight: 1.6 }}>
-          תשלום מאובטח דרך נדרים פלוס. לאחר השלמת התשלום לחצו על <strong style={{ color: "var(--gold-2)" }}>סיום הזמנה</strong> למטה.
+      {/* Status */}
+      {paid ? (
+        <div style={{
+          padding: "16px 20px",
+          background: "rgba(82,183,136,.1)",
+          border: "1px solid rgba(82,183,136,.4)",
+          borderRadius: 2,
+          display: "flex", alignItems: "center", gap: 12,
+          color: "#52b788", fontSize: 15,
+        }}>
+          <span style={{ fontSize: 20 }}>✓</span>
+          <span>השלמתם את התשלום? לחצו על <strong>סיום הזמנה</strong> למטה.</span>
         </div>
-      </div>
+      ) : (
+        <div style={{
+          padding: "14px 18px",
+          background: "rgba(255,255,255,.02)",
+          border: "1px solid rgba(201,166,97,.15)",
+          borderRadius: 2,
+          fontSize: 13, opacity: .65, lineHeight: 1.65,
+          display: "flex", gap: 10, alignItems: "center",
+        }}>
+          <span>🔒</span>
+          <span>תשלום מאובטח דרך נדרים פלוס. הכסף עובר ישירות לחשבון שלכם.</span>
+        </div>
+      )}
     </div>
   );
 }
