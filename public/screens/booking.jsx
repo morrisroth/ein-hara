@@ -445,7 +445,7 @@ function StepPayment({ form, pkg, vp = {}, onPaymentDone }) {
           display: "flex", gap: 10, alignItems: "center",
         }}>
           <span>🔒</span>
-          <span>תשלום מאובטח דרך נדרים פלוס. הכסף עובר ישירות לחשבון שלכם.</span>
+          <span>תשלום מאובטח ומוצפן דרך נדרים פלוס.</span>
         </div>
       )}
     </div>
