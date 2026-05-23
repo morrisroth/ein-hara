@@ -94,7 +94,7 @@ function BookingScreen({ selectedPkgId, onNav, onConfirm }) {
                 </GoldButton>
               ) : (
                 <GoldButton onClick={() => onConfirm(form)}>
-                  אישור והזמנה
+                  סיום הזמנה ›
                 </GoldButton>
               )}
             </div>
@@ -312,61 +312,53 @@ function StepDetails({ form, setF, pkg, vp = {} }) {
   );
 }
 
-// --- Step 3: payment ---
-function StepPayment({ form, setF, pkg, vp = {} }) {
+// --- Step 3: payment via Nedarim Plus ---
+function StepPayment({ form, pkg, vp = {} }) {
+  const desc = encodeURIComponent('חבילת ' + pkg.tier + ' - בית עין');
+  const firstName = (form.names[0] && form.names[0].first) ? encodeURIComponent(form.names[0].first) : '';
+  const email = form.email ? encodeURIComponent(form.email) : '';
+  const iframeSrc =
+    'https://www.nedarimplus.co.il/WidgetsV5/Widget.aspx' +
+    '?c=7018027' +
+    '&sum=' + pkg.price +
+    '&msg=' + desc +
+    (firstName ? '&fname=' + firstName : '') +
+    (email ? '&email=' + email : '');
+
   return (
     <div>
-      <h2 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontWeight: 500, fontSize: vp.isMobile ? 28 : 36, color: "var(--cream)", marginBottom: 12 }}>אישור ותשלום</h2>
-      <p style={{ opacity: .65, marginBottom: 28, fontSize: 15 }}>תשלום מאובטח. לא נחייב לפני שתאשרו בדף הבא.</p>
-
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 17, color: "var(--gold-2)", marginBottom: 12 }}>אופן תשלום</div>
-        <div style={{ display: "grid", gridTemplateColumns: vp.isMobile ? "1fr" : "1fr 1fr 1fr", gap: 10 }}>
-          {[
-            { id: "card", label: "אשראי", sub: "Visa · Master · ישראכרט" },
-            { id: "bit", label: "Bit", sub: "תשלום מהאפליקציה" },
-            { id: "paypal", label: "PayPal", sub: "פייפאל / Apple Pay" },
-          ].map(m => {
-            const active = form.payment === m.id;
-            return (
-              <button key={m.id} onClick={() => setF({ payment: m.id })} style={{
-                padding: "20px 18px",
-                background: active ? "rgba(201,166,97,.12)" : "rgba(255,255,255,.02)",
-                border: active ? "1px solid var(--gold)" : "1px solid rgba(201,166,97,.2)",
-                color: "var(--cream)", textAlign: "right", borderRadius: 2,
-              }}>
-                <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 19 }}>{m.label}</div>
-                <div style={{ fontSize: 12, opacity: .55, marginTop: 4 }}>{m.sub}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {form.payment === "card" && (
-        <div style={{ display: "grid", gridTemplateColumns: vp?.isMobile ? "1fr" : "1fr 1fr 1fr", gap: 14 }}>
-          <Field label="מספר כרטיס" style={{ gridColumn: "1 / -1" }}>
-            <Input dir="ltr" placeholder="•••• •••• •••• ••••" />
-          </Field>
-          <Field label="תוקף"><Input dir="ltr" placeholder="MM / YY"/></Field>
-          <Field label="CVV"><Input dir="ltr" placeholder="•••"/></Field>
-          <Field label="ת.ז בעל הכרטיס"><Input dir="ltr" placeholder="000000000"/></Field>
-        </div>
-      )}
+      <h2 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontWeight: 500, fontSize: vp.isMobile ? 28 : 36, color: "var(--cream)", marginBottom: 10 }}>תשלום מאובטח</h2>
+      <p style={{ opacity: .65, marginBottom: 22, fontSize: 15, lineHeight: 1.6 }}>
+        מלאו את פרטי התשלום בטופס למטה. לאחר אישור התשלום לחצו על <strong style={{ color: "var(--gold-2)" }}>סיום הזמנה</strong>.
+      </p>
 
       <div style={{
-        marginTop: 26, padding: "16px 18px",
-        background: "rgba(255,255,255,.02)",
-        border: "1px solid rgba(201,166,97,.18)", borderRadius: 2,
-        display: "flex", gap: 14, alignItems: "flex-start",
+        border: "1px solid rgba(201,166,97,.3)",
+        borderRadius: 2,
+        overflow: "hidden",
+        background: "#fff",
+        minHeight: vp.isMobile ? 500 : 460,
       }}>
-        <div style={{
-          width: 36, height: 36, border: "1px solid var(--gold)", borderRadius: 2,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "'Frank Ruhl Libre', serif", fontSize: 18, color: "var(--gold-2)",
-        }}>ם</div>
-        <div style={{ fontSize: 13, opacity: .8, lineHeight: 1.65 }}>
-          תשלום מאובטח SSL. הפרטים מוצפנים ולא נשמרים אצלנו. <strong style={{ color: "var(--gold-2)" }}>סודיות מוחלטת</strong> — אף אחד מלבד המקובל לא רואה את השמות.
+        <iframe
+          src={iframeSrc}
+          width="100%"
+          height={vp.isMobile ? "520" : "480"}
+          frameBorder="0"
+          scrolling="auto"
+          style={{ display: "block", width: "100%" }}
+          title="תשלום נדרים פלוס"
+        />
+      </div>
+
+      <div style={{
+        marginTop: 16, padding: "14px 18px",
+        background: "rgba(201,166,97,.05)",
+        border: "1px solid rgba(201,166,97,.18)", borderRadius: 2,
+        display: "flex", gap: 12, alignItems: "center",
+      }}>
+        <div style={{ fontSize: 20, color: "var(--gold)" }}>🔒</div>
+        <div style={{ fontSize: 13, opacity: .75, lineHeight: 1.6 }}>
+          תשלום מאובטח דרך נדרים פלוס. לאחר השלמת התשלום לחצו על <strong style={{ color: "var(--gold-2)" }}>סיום הזמנה</strong> למטה.
         </div>
       </div>
     </div>
