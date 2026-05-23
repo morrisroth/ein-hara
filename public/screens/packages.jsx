@@ -77,7 +77,7 @@ function PackagesScreen({ onNav, onSelect }) {
         />
 
         {/* Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: gridCols(vp, { mobile: 1, tablet: 1, desktop: 3 }), gap: vp.isMobile ? 18 : 24, alignItems: "stretch" }}>
+        <div style={{ display: "grid", gridTemplateColumns: gridCols(vp, { mobile: 1, tablet: 1, desktop: 3 }), gap: vp.isMobile ? 18 : 24, alignItems: "stretch", marginTop: vp.isMobile ? 0 : 24 }}>
           {PACKAGES.map(p => <BigPackageCard key={p.id} pkg={p} onSelect={() => onSelect(p.id)} vp={vp} />)}
         </div>
 
