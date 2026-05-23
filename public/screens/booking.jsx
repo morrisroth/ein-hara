@@ -384,7 +384,7 @@ function StepPayment({ form, pkg, vp = {}, onPaymentDone }) {
     <div>
       <h2 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontWeight: 500, fontSize: vp.isMobile ? 28 : 36, color: "var(--cream)", marginBottom: 10 }}>תשלום מאובטח</h2>
       <p style={{ opacity: .65, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-        לחצו על כפתור התשלום — יפתח חלון נדרים פלוס. לאחר השלמת התשלום ההזמנה תאושר אוטומטית.
+        לחצו על כפתור התשלום — יפתח חלון תשלום מאובטח. לאחר השלמת התשלום ההזמנה תאושר אוטומטית.
       </p>
 
       {/* Summary box */}
@@ -420,7 +420,7 @@ function StepPayment({ form, pkg, vp = {}, onPaymentDone }) {
         onMouseEnter={e => { if (!popupOpen) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 30px -8px rgba(201,166,97,.7)"; } }}
         onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = popupOpen ? "none" : "0 8px 24px -8px rgba(201,166,97,.6)"; }}
         >
-          🔒 {popupOpen ? "ממתין לאישור תשלום..." : "לתשלום בנדרים פלוס"}
+          🔒 {popupOpen ? "ממתין לאישור תשלום..." : "לתשלום מאובטח"}
         </button>
       </div>
 
@@ -453,7 +453,7 @@ function StepPayment({ form, pkg, vp = {}, onPaymentDone }) {
           display: "flex", gap: 10, alignItems: "center",
         }}>
           <span>🔒</span>
-          <span>תשלום מאובטח ומוצפן דרך נדרים פלוס.</span>
+          <span>תשלום מאובטח ומוצפן.</span>
         </div>
       )}
     </div>
