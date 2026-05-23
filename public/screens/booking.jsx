@@ -320,10 +320,10 @@ function StepPayment({ form, pkg, vp = {} }) {
   const firstName = (form.names[0] && form.names[0].first) ? encodeURIComponent(form.names[0].first) : '';
   const email = form.email ? encodeURIComponent(form.email) : '';
   const payUrl =
-    'https://www.nedarimplus.co.il/WidgetsV5/Widget.aspx' +
-    '?c=7018027' +
+    'https://matara.pro/nedarimplus/online/' +
+    '?mosad=7018027' +
     '&sum=' + pkg.price +
-    '&msg=' + desc +
+    '&teur=' + desc +
     (firstName ? '&fname=' + firstName : '') +
     (email ? '&email=' + email : '');
 
