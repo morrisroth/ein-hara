@@ -330,20 +330,28 @@ function StepPayment({ form, pkg, vp = {}, onPaymentDone }) {
   };
   const label = PKG_LABELS[pkg.id] || PKG_LABELS.segula;
 
-  // Listen for postMessage from the payment popup/tab
+  // Listen for payment confirmation via postMessage (desktop popup) or localStorage (mobile new tab)
   useEffectBook(() => {
-    const handler = (e) => {
-      if (e.data && e.data.nedarimPaid) {
-        setPopupOpen(false);
-        if (popupRef.current && !popupRef.current.closed) {
-          try { popupRef.current.close(); } catch(_) {}
-        }
-        popupRef.current = null;
-        if (onPaymentDone) onPaymentDone();
+    const confirm = () => {
+      setPopupOpen(false);
+      setManualFallback(false);
+      if (popupRef.current && !popupRef.current.closed) {
+        try { popupRef.current.close(); } catch(_) {}
       }
+      popupRef.current = null;
+      try { localStorage.removeItem('ein_paid'); } catch(_) {}
+      if (onPaymentDone) onPaymentDone();
     };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
+    // Desktop: postMessage from popup
+    const msgHandler = (e) => { if (e.data && e.data.nedarimPaid) confirm(); };
+    window.addEventListener('message', msgHandler);
+    // Mobile: localStorage storage event from new tab
+    const storageHandler = (e) => { if (e.key === 'ein_paid' && e.newValue) confirm(); };
+    window.addEventListener('storage', storageHandler);
+    return () => {
+      window.removeEventListener('message', msgHandler);
+      window.removeEventListener('storage', storageHandler);
+    };
   }, [onPaymentDone]);
 
   const handlePayClick = () => {

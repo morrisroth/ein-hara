@@ -1,11 +1,20 @@
 // Main App — handles screen routing
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
-// Payment callback page shown inside the popup after Nedarim Plus redirects back
+// Payment callback page — shown in the popup/tab after Nedarim Plus redirects back
 function PaymentSuccessPage() {
+  const [closed, setClosed] = useStateApp(false);
   useEffectApp(() => {
+    // Signal the booking tab via localStorage (works on mobile where opener is null)
+    try { localStorage.setItem('ein_paid', Date.now().toString()); } catch(e) {}
+    // Also try postMessage for desktop popup
     try { window.opener.postMessage({ nedarimPaid: true }, '*'); } catch(e) {}
-    setTimeout(() => { try { window.close(); } catch(e) {} }, 1500);
+    // Try to close this tab/popup
+    const t = setTimeout(() => {
+      try { window.close(); } catch(e) {}
+      setClosed(true);
+    }, 1800);
+    return () => clearTimeout(t);
   }, []);
   return (
     <div style={{
@@ -16,7 +25,11 @@ function PaymentSuccessPage() {
     }}>
       <div style={{ fontSize: 72, color: '#c9a661', marginBottom: 20 }}>✓</div>
       <h1 style={{ fontSize: 32, marginBottom: 12, color: '#c9a661', fontWeight: 400 }}>התשלום בוצע בהצלחה!</h1>
-      <p style={{ opacity: 0.65, fontSize: 16 }}>חלון זה ייסגר אוטומטית...</p>
+      {closed ? (
+        <p style={{ opacity: 0.65, fontSize: 16 }}>חזרו לחלון ההזמנה לאישור סופי.</p>
+      ) : (
+        <p style={{ opacity: 0.65, fontSize: 16 }}>חלון זה ייסגר אוטומטית...</p>
+      )}
     </div>
   );
 }
@@ -26,9 +39,9 @@ function App() {
   const [selectedPkg, setSelectedPkg] = useStateApp("shmira");
   const [submittedForm, setSubmittedForm] = useStateApp(null);
 
-  // If this window is the payment popup returning from Nedarim Plus, show success page
+  // If this is the payment callback page (in popup or new tab), show success page
   const params = new URLSearchParams(window.location.search);
-  if (params.get('paid') === '1' && window.opener) {
+  if (params.get('paid') === '1') {
     return <PaymentSuccessPage />;
   }
 
