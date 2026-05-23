@@ -320,14 +320,14 @@ function StepPayment({ form, pkg, vp = {} }) {
   const REDIRECT = '&Redirect=' + encodeURIComponent('http://213.199.53.73:3001');
   const PKG_URLS = {
     segula:  BASE + '&OnlyNormal=1&Amount=149&AmountLock=1&Payment=1&PaymentLock=1' + REDIRECT,
-    shmira:  BASE + '&OnlyHok=1&Amount=129&AmountLock=1' + REDIRECT,
+    shmira:  BASE + '&OnlyNormal=1&Amount=258&AmountLock=1&Payment=2&PaymentLock=1' + REDIRECT,
     magen:   BASE + '&OnlyNormal=1&Amount=101&AmountLock=1&Payment=12&PaymentLock=1' + REDIRECT,
   };
   const payUrl = PKG_URLS[pkg.id] || PKG_URLS.segula;
 
   const PKG_LABELS = {
     segula: { top: '₪149', sub: 'חיוב חד פעמי' },
-    shmira: { top: '₪129 לחודש', sub: 'הוראת קבע חודשית · ביטול בכל זמן' },
+    shmira: { top: '2 × ₪129', sub: 'סה״כ ₪258 · 2 תשלומים חודשיים' },
     magen:  { top: '12 × ₪101', sub: 'סה״כ ₪1,212 · חיוב שנתי חד פעמי ב-12 תשלומים' },
   };
   const label = PKG_LABELS[pkg.id] || PKG_LABELS.segula;
