@@ -316,16 +316,14 @@ function StepDetails({ form, setF, pkg, vp = {} }) {
 function StepPayment({ form, pkg, vp = {} }) {
   const [paid, setPaid] = useStateBook(false);
 
-  const desc = encodeURIComponent('חבילת ' + pkg.tier + ' - בית עין');
-  const firstName = (form.names[0] && form.names[0].first) ? encodeURIComponent(form.names[0].first) : '';
-  const email = form.email ? encodeURIComponent(form.email) : '';
-  const payUrl =
-    'https://matara.pro/nedarimplus/online/' +
-    '?mosad=7018027' +
-    '&sum=' + pkg.price +
-    '&teur=' + desc +
-    (firstName ? '&fname=' + firstName : '') +
-    (email ? '&email=' + email : '');
+  const BASE = 'https://www.matara.pro/nedarimplus/online/?mosad=7018027';
+  const REDIRECT = '&Redirect=' + encodeURIComponent('http://213.199.53.73:3001');
+  const PKG_URLS = {
+    segula:  BASE + '&OnlyNormal=1&Amount=149&AmountLock=1&Payment=1&PaymentLock=1' + REDIRECT,
+    shmira:  BASE + '&OnlyHok=1&Amount=129&AmountLock=1' + REDIRECT,
+    magen:   BASE + '&OnlyNormal=1&Amount=1212&AmountLock=1&Payment=12&PaymentLock=1' + REDIRECT,
+  };
+  const payUrl = PKG_URLS[pkg.id] || PKG_URLS.segula;
 
   const handlePayClick = () => {
     window.open(payUrl, '_blank', 'noopener');
