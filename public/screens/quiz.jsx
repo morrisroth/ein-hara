@@ -206,14 +206,14 @@ function QuizResult({ answers, onNav, onRetry, vp = {} }) {
           display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24,
           flexWrap: "wrap",
         }}>
-          <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: "'Miriam Libre', serif", fontSize: 10, letterSpacing: ".3em", color: "var(--gold)", marginBottom: 8 }}>החבילה המומלצת עבורכם</div>
-            <h3 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 38, color: "var(--cream)" }}>חבילת {rec}</h3>
+            <h3 style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: vp.isMobile ? 28 : 38, color: "var(--cream)" }}>חבילת {rec}</h3>
             <p style={{ marginTop: 8, opacity: .7, fontSize: 15 }}>בהתבסס על התשובות שלכם, זו ההמלצה שלנו. כמובן שניתן לבחור כל חבילה אחרת.</p>
           </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <GoldButton size="lg" onClick={() => onNav("packages")}>בחירת חבילה</GoldButton>
-            <GoldButton size="lg" variant="ghost" onClick={onRetry}>אבחון מחדש</GoldButton>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", width: "100%" }}>
+            <GoldButton size={vp.isMobile ? "md" : "lg"} onClick={() => onNav("packages")}>בחירת חבילה</GoldButton>
+            <GoldButton size={vp.isMobile ? "md" : "lg"} variant="ghost" onClick={onRetry}>אבחון מחדש</GoldButton>
           </div>
         </div>
       </div>

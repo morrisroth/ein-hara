@@ -216,8 +216,8 @@ function CompareTable({ onSelect, vp = {} }) {
   ];
   const headers = ["", "סגולה", "שמירה", "מגן עולם"];
   return (
-    <div style={{ marginTop: 36, border: "1px solid rgba(201,166,97,.18)", borderRadius: 2, overflow: "auto", maxWidth: "100%" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: vp.isMobile ? 560 : 0 }}>
+    <div style={{ marginTop: 36, border: "1px solid rgba(201,166,97,.18)", borderRadius: 2, overflowX: "auto", overflowY: "visible", width: "100%", WebkitOverflowScrolling: "touch" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: vp.isMobile ? 480 : 0 }}>
         <thead>
           <tr style={{ background: "rgba(201,166,97,.06)" }}>
             {headers.map((h, i) => (
