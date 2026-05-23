@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://beit-ayin.com/sitemap.xml
