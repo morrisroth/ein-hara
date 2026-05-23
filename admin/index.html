@@ -304,14 +304,17 @@ a{color:var(--gold2);text-decoration:none}
         <div class="table-card">
           <div class="table-head">
             <h3>כל ההזמנות</h3>
-            <input class="search-box" id="sub-search" placeholder="חיפוש לפי שם, טלפון, מייל..." oninput="loadSubmissions(0)" dir="rtl"/>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <input class="search-box" id="sub-search" placeholder="חיפוש לפי שם, טלפון, מייל..." oninput="loadSubmissions(0)" dir="rtl"/>
+              <button onclick="exportCSV()" style="padding:8px 16px;background:rgba(82,183,136,.15);border:1px solid rgba(82,183,136,.4);border-radius:4px;color:var(--green2);font-size:13px;cursor:pointer">⬇ ייצוא CSV</button>
+            </div>
           </div>
           <div style="overflow-x:auto">
             <table class="tbl">
               <thead>
                 <tr>
-                  <th>#</th><th>תאריך</th><th>שם</th><th>טלפון</th><th>מייל</th>
-                  <th>חבילה</th><th>מחיר</th><th>תשלום</th><th>הערות</th>
+                  <th>#</th><th>תאריך</th><th>שמות לטיפול</th><th>טלפון</th><th>מייל</th>
+                  <th>חבילה</th><th>מחיר</th><th>מתנה</th><th>הערות</th><th></th>
                 </tr>
               </thead>
               <tbody id="sub-body"></tbody>
@@ -322,6 +325,14 @@ a{color:var(--gold2);text-decoration:none}
             <span id="sub-page-info"></span>
             <button onclick="subPage++; loadSubmissions(subPage)">הבא ›</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Detail modal -->
+      <div id="detail-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--ink2);border:1px solid rgba(201,166,97,.3);border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:32px;position:relative">
+          <button onclick="closeDetail()" style="position:absolute;top:16px;left:16px;font-size:22px;opacity:.5;color:var(--cream)">×</button>
+          <div id="detail-content"></div>
         </div>
       </div>
 
@@ -464,31 +475,111 @@ async function loadStats() {
 
 // ── Submissions ───────────────────────────────────────────────────────────────
 
+let allSubsCache = [];
+
 async function loadSubmissions(page) {
   subPage = Math.max(0, page);
   const search = encodeURIComponent(document.getElementById('sub-search')?.value || '');
-  const r = await api(`/api/admin/submissions?page=${subPage}&search=${search}`);
+  const r = await api(`/api/admin/submissions?page=${subPage}&search=${search}&limit=50`);
   if (!r.ok) return;
   const { submissions, total } = await r.json();
+  allSubsCache = submissions;
   const limit = 50;
   const tbody = document.getElementById('sub-body');
   tbody.innerHTML = submissions.length ? submissions.map((s,i) => {
-    let names = '—';
-    try { names = JSON.parse(s.names || '[]').map(n => n.first ? `${n.first} / ${n.mother}` : '').filter(Boolean).join('<br>'); } catch{}
+    let namesArr = [];
+    try { namesArr = JSON.parse(s.names || '[]'); } catch{}
+    const namesCells = namesArr.map(n => n.first ? `<div style="line-height:1.6"><strong>${n.first}</strong> בן/בת ${n.mother||'—'}</div>` : '').filter(Boolean).join('') || '—';
     const pkgBadge = s.pkg_name ? `<span class="badge badge-gold">${s.pkg_name}</span>` : '—';
-    return `<tr>
+    const giftBadge = s.as_gift ? `<span class="badge badge-wine">🎁 מתנה</span>` : '—';
+    const shortConcerns = (s.concerns||'').trim();
+    return `<tr style="cursor:pointer" onclick="showDetail(${subPage*limit+i})">
       <td style="opacity:.4">${subPage*limit+i+1}</td>
-      <td style="white-space:nowrap;opacity:.6">${fmtDate(s.created_at)}</td>
-      <td>${names || '—'}</td>
-      <td dir="ltr">${s.phone||'—'}</td>
-      <td dir="ltr" style="opacity:.75">${s.email||'—'}</td>
+      <td style="white-space:nowrap;opacity:.6;font-size:12px">${fmtDate(s.created_at)}</td>
+      <td>${namesCells}</td>
+      <td dir="ltr" style="white-space:nowrap">${s.phone||'—'}</td>
+      <td dir="ltr" style="opacity:.75;font-size:12px">${s.email||'—'}</td>
       <td>${pkgBadge}</td>
-      <td style="color:var(--gold2)">₪${s.price||0}</td>
-      <td><span class="badge badge-green">${s.payment||'—'}</span></td>
-      <td style="max-width:200px;opacity:.65;font-size:12px">${(s.concerns||'').slice(0,80)||'—'}</td>
+      <td style="color:var(--gold2);white-space:nowrap">₪${s.price||0}</td>
+      <td>${giftBadge}</td>
+      <td style="max-width:180px;opacity:.65;font-size:12px">${shortConcerns ? shortConcerns.slice(0,60)+(shortConcerns.length>60?'…':'') : '—'}</td>
+      <td style="opacity:.4;font-size:18px">›</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9" class="empty-state">אין הזמנות עדיין</td></tr>';
+  }).join('') : '<tr><td colspan="10" class="empty-state">אין הזמנות עדיין</td></tr>';
   setText('sub-page-info', `עמוד ${subPage+1} · ${total} סה"כ`);
+}
+
+function showDetail(idx) {
+  const s = allSubsCache[idx];
+  if (!s) return;
+  let namesArr = [];
+  try { namesArr = JSON.parse(s.names || '[]'); } catch{}
+
+  const rows = [
+    ['תאריך הזמנה', fmtDate(s.created_at)],
+    ['חבילה', s.pkg_name || '—'],
+    ['מחיר', '₪' + (s.price || 0)],
+    ['מתנה', s.as_gift ? 'כן 🎁' : 'לא'],
+    ['טלפון', s.phone || '—'],
+    ['מייל', s.email || '—'],
+    ['הערות / בקשה', s.concerns || '—'],
+  ];
+
+  const namesHtml = namesArr.map((n,i) =>
+    `<div style="padding:10px 14px;background:rgba(201,166,97,.06);border:1px solid rgba(201,166,97,.2);border-radius:4px;margin-bottom:8px">
+      <div style="font-size:11px;opacity:.5;margin-bottom:4px">שם ${i+1}</div>
+      <div><strong style="color:var(--cream)">${n.first||'—'}</strong> <span style="opacity:.5">שם האם:</span> <strong style="color:var(--gold2)">${n.mother||'—'}</strong></div>
+    </div>`
+  ).join('');
+
+  document.getElementById('detail-content').innerHTML = `
+    <h3 style="font-size:20px;font-weight:700;margin-bottom:20px;color:var(--gold2)">פרטי הזמנה מלאים</h3>
+    <div style="margin-bottom:18px">
+      <div style="font-size:12px;opacity:.5;margin-bottom:8px;letter-spacing:.08em">שמות לטיפול</div>
+      ${namesHtml || '<div style="opacity:.4">—</div>'}
+    </div>
+    <table style="width:100%;border-collapse:collapse">
+      ${rows.map(([k,v]) => `
+        <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+          <td style="padding:10px 0;font-size:12px;opacity:.5;width:130px">${k}</td>
+          <td style="padding:10px 0;font-size:14px;color:var(--cream);white-space:pre-wrap">${v}</td>
+        </tr>`).join('')}
+    </table>
+    <button onclick="closeDetail()" style="margin-top:24px;padding:10px 24px;background:rgba(201,166,97,.15);border:1px solid rgba(201,166,97,.3);border-radius:4px;color:var(--gold2);font-size:14px;width:100%">סגירה</button>
+  `;
+  document.getElementById('detail-modal').style.display = 'flex';
+}
+
+function closeDetail() {
+  document.getElementById('detail-modal').style.display = 'none';
+}
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDetail();
+});
+
+async function exportCSV() {
+  const r = await api('/api/admin/submissions?page=0&limit=9999');
+  if (!r.ok) return;
+  const { submissions } = await r.json();
+  const header = ['תאריך','שם פרטי','שם האם','שם 2 פרטי','שם 2 אם','טלפון','מייל','חבילה','מחיר','מתנה','הערות'];
+  const rows = submissions.map(s => {
+    let n = [];
+    try { n = JSON.parse(s.names||'[]'); } catch{}
+    return [
+      fmtDate(s.created_at),
+      n[0]?.first||'', n[0]?.mother||'',
+      n[1]?.first||'', n[1]?.mother||'',
+      s.phone||'', s.email||'',
+      s.pkg_name||'', s.price||0,
+      s.as_gift?'כן':'לא',
+      (s.concerns||'').replace(/\n/g,' '),
+    ];
+  });
+  const csv = '﻿' + [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'הזמנות-בית-עין.csv';
+  a.click();
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────

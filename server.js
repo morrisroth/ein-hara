@@ -187,7 +187,7 @@ app.get('/api/admin/stats', authMiddleware, (req, res) => {
 
 app.get('/api/admin/submissions', authMiddleware, (req, res) => {
   const page = Math.max(0, parseInt(req.query.page) || 0);
-  const limit = 50;
+  const limit = Math.min(9999, Math.max(1, parseInt(req.query.limit) || 50));
   const search = req.query.search ? `%${req.query.search}%` : null;
   const rows = search
     ? db.prepare(`SELECT * FROM submissions WHERE phone LIKE ? OR email LIKE ? OR names LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(search, search, search, limit, page * limit)
