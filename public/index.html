@@ -5,10 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>בית עין | הסרת עין הרע על פי תורת הקבלה</title>
 <meta name="description" content="הסרת עין הרע, שמירה רוחנית וטיפולי קבלה אמיתיים — בכוח אותיות קדושות וצירופי שמות. טיפול מרחוק מהבית, תוך 24 שעות. חבילות מ-₪149." />
-<meta name="keywords" content="עין הרע, הסרת עין הרע, קבלה, שמירה רוחנית, טיפול רוחני, מקובל, תיקון עין הרע, הגנה רוחנית" />
-<meta name="robots" content="index, follow" />
+<meta name="keywords" content="עין הרע, הסרת עין הרע, קבלה, שמירה רוחנית, טיפול רוחני, מקובל, תיקון עין הרע, הגנה רוחנית, סגולות, ביטול עין הרע" />
+<meta name="author" content="בית עין" />
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
 <meta name="google-site-verification" content="_6-ejwN2Oku4c94kBrNoGZJhbgKOsTt8QiW8tDPbbM0" />
 <link rel="canonical" href="https://beit-ayin.com" />
+<link rel="alternate" hreflang="he" href="https://beit-ayin.com" />
+<link rel="alternate" hreflang="x-default" href="https://beit-ayin.com" />
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230c0d1d'/><text y='.9em' font-size='80' x='10' fill='%23c9a661'>ע</text></svg>" />
+
+<!-- Mobile -->
+<meta name="theme-color" content="#0c0d1d" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="בית עין" />
+<meta name="format-detection" content="telephone=no" />
 
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
@@ -23,7 +36,19 @@
 <meta name="twitter:title" content="בית עין | הסרת עין הרע על פי תורת הקבלה" />
 <meta name="twitter:description" content="הסרת עין הרע, שמירה רוחנית וטיפולי קבלה אמיתיים. טיפול מרחוק מהבית, תוך 24 שעות." />
 
-<!-- Structured Data -->
+<!-- WebSite Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "בית עין",
+  "url": "https://beit-ayin.com",
+  "inLanguage": "he",
+  "description": "הסרת עין הרע ושמירה רוחנית על פי תורת הקבלה"
+}
+</script>
+
+<!-- Service Schema -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -31,38 +56,95 @@
   "name": "בית עין",
   "description": "הסרת עין הרע ושמירה רוחנית על פי תורת הקבלה. טיפולים מרחוק תוך 24 שעות.",
   "url": "https://beit-ayin.com",
-  "telephone": "",
   "priceRange": "₪149-₪1212",
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "IL"
-  },
-  "serviceType": "הסרת עין הרע",
-  "areaServed": "IL",
+  "currenciesAccepted": "ILS",
+  "paymentAccepted": "Credit Card",
+  "address": {"@type": "PostalAddress", "addressCountry": "IL"},
+  "areaServed": {"@type": "Country", "name": "Israel"},
+  "serviceType": ["הסרת עין הרע", "שמירה רוחנית", "טיפול קבלה"],
+  "availableLanguage": {"@type": "Language", "name": "Hebrew"},
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
     "name": "חבילות טיפול",
     "itemListElement": [
       {
         "@type": "Offer",
-        "itemOffered": {"@type": "Service", "name": "חבילת סגולה"},
-        "price": "149",
-        "priceCurrency": "ILS"
+        "itemOffered": {"@type": "Service", "name": "חבילת סגולה — הסרת עין הרע חד פעמי"},
+        "price": "149", "priceCurrency": "ILS",
+        "availability": "https://schema.org/InStock"
       },
       {
         "@type": "Offer",
-        "itemOffered": {"@type": "Service", "name": "חבילת שמירה"},
-        "price": "258",
-        "priceCurrency": "ILS"
+        "itemOffered": {"@type": "Service", "name": "חבילת שמירה — 2 טיפולי ראש חודש"},
+        "price": "258", "priceCurrency": "ILS",
+        "availability": "https://schema.org/InStock"
       },
       {
         "@type": "Offer",
-        "itemOffered": {"@type": "Service", "name": "חבילת מגן עולם"},
-        "price": "1212",
-        "priceCurrency": "ILS"
+        "itemOffered": {"@type": "Service", "name": "חבילת מגן עולם — שמירה שנתית למשפחה"},
+        "price": "1212", "priceCurrency": "ILS",
+        "availability": "https://schema.org/InStock"
       }
     ]
   }
+}
+</script>
+
+<!-- FAQ Schema — shows Q&A directly in Google results -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "האם אפשר לשדרג חבילה אחר כך?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "כן. בכל זמן ניתן לשדרג ולשלם רק את ההפרש. הסבר מלא בעת ההזמנה."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "האם החבילה מתחדשת אוטומטית?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "לא. כל חבילה היא חד-פעמית. אם תרצו להמשיך — נשלח לכם תזכורת לפני סוף התקופה."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "מה הזמן הצפוי בין הזמנה לטיפול ראשון?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "תוך 48 שעות מהתשלום נחזור אליכם לתיאום. הטיפול עצמו בדרך כלל בתוך השבוע."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "האם אפשר לתת חבילה כמתנה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "בהחלט. בעת ההזמנה ניתן לסמן 'מתנה' ולהוסיף ברכה אישית. נשלח אישור יפה בדואר אלקטרוני."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "מה זה הסרת עין הרע על פי הקבלה?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "הסרת עין הרע על פי תורת הקבלה היא תהליך רוחני שמטרתו לנתק השפעות שליליות שנוצרו כתוצאה מקנאה או מבט שלילי. המקובל משתמש בצירופי שמות, אותיות קדושות וכוונות מיוחדות לפי המסורת."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "כמה עולה הסרת עין הרע?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "חבילת הסרת עין הרע הבסיסית (סגולה) עולה ₪149 לטיפול חד פעמי. קיימות גם חבילות שמירה מתמשכת החל מ-₪129 לחודש."
+      }
+    }
+  ]
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
