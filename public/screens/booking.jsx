@@ -320,7 +320,7 @@ function StepPayment({ form, pkg, vp = {} }) {
   const REDIRECT = '&Redirect=' + encodeURIComponent('http://213.199.53.73:3001');
   const PKG_URLS = {
     segula:  BASE + '&OnlyNormal=1&Amount=149&AmountLock=1&Payment=1&PaymentLock=1' + REDIRECT,
-    shmira:  BASE + '&OnlyNormal=1&Amount=258&AmountLock=1&Payment=2&PaymentLock=1' + REDIRECT,
+    shmira:  BASE + '&NormalDefault=1&OnlyNormal=1&Amount=258&AmountLock=1&Payment=2&PaymentLock=1&Analytic=%D7%97%D7%91%D7%99%D7%9C%D7%AA%20%D7%A9%D7%9E%D7%99%D7%A8%D7%94%20-%20%D7%91%D7%99%D7%AA%20%D7%A2%D7%99%D7%9F' + REDIRECT,
     magen:   BASE + '&OnlyNormal=1&Amount=101&AmountLock=1&Payment=12&PaymentLock=1' + REDIRECT,
   };
   const payUrl = PKG_URLS[pkg.id] || PKG_URLS.segula;
