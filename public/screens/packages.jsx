@@ -7,7 +7,7 @@ const PACKAGES = [
     tier: "סגולה",
     letter: "ס",
     sub: "טיפול חד פעמי · עד 2 שמות",
-    price: 199,
+    price: 149,
     priceUnit: "חד פעמי",
     priceFull: 280,
     duration: "טיפול בודד",

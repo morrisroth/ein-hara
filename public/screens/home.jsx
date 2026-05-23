@@ -240,7 +240,7 @@ function PackagePreview({ onNav, vp }) {
       tier: "סגולה",
       letter: "ס",
       sub: "חד פעמי",
-      price: 199,
+      price: 149,
       priceUnit: "חד פעמי",
       tag: "טיפול בודד",
       bullets: ["טיפול הסרה אחד", "עד 2 שמות בטיפול", "סדר ברכות במייל"],
