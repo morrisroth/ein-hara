@@ -321,9 +321,16 @@ function StepPayment({ form, pkg, vp = {} }) {
   const PKG_URLS = {
     segula:  BASE + '&OnlyNormal=1&Amount=149&AmountLock=1&Payment=1&PaymentLock=1' + REDIRECT,
     shmira:  BASE + '&OnlyHok=1&Amount=129&AmountLock=1' + REDIRECT,
-    magen:   BASE + '&OnlyNormal=1&Amount=1212&AmountLock=1&Payment=12&PaymentLock=1' + REDIRECT,
+    magen:   BASE + '&OnlyNormal=1&Amount=101&AmountLock=1&Payment=12&PaymentLock=1' + REDIRECT,
   };
   const payUrl = PKG_URLS[pkg.id] || PKG_URLS.segula;
+
+  const PKG_LABELS = {
+    segula: { top: '₪149', sub: 'חיוב חד פעמי' },
+    shmira: { top: '₪129 לחודש', sub: 'הוראת קבע חודשית · ביטול בכל זמן' },
+    magen:  { top: '12 × ₪101', sub: 'סה״כ ₪1,212 · חיוב שנתי חד פעמי ב-12 תשלומים' },
+  };
+  const label = PKG_LABELS[pkg.id] || PKG_LABELS.segula;
 
   const handlePayClick = () => {
     window.open(payUrl, '_blank', 'noopener');
@@ -348,10 +355,10 @@ function StepPayment({ form, pkg, vp = {} }) {
       }}>
         <div>
           <div style={{ fontFamily: "'Miriam Libre', serif", fontSize: 10, letterSpacing: ".3em", color: "var(--gold)", marginBottom: 6 }}>לתשלום</div>
-          <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 42, color: "var(--cream)", lineHeight: 1 }}>
-            ₪{pkg.price}
+          <div style={{ fontFamily: "'Frank Ruhl Libre', serif", fontSize: 38, color: "var(--cream)", lineHeight: 1 }}>
+            {label.top}
           </div>
-          <div style={{ fontSize: 13, opacity: .55, marginTop: 6 }}>חבילת {pkg.tier} · {pkg.duration}</div>
+          <div style={{ fontSize: 13, opacity: .55, marginTop: 8 }}>{label.sub}</div>
         </div>
         <button onClick={handlePayClick} style={{
           padding: "18px 36px",
